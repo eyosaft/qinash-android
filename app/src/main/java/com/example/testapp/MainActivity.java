@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -28,6 +29,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
+
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.CAMERA;
 
 import com.google.android.material.snackbar.Snackbar;
 
@@ -104,11 +109,13 @@ public class MainActivity extends Activity{
             @Override
             public void onPermissionRequest(final PermissionRequest request) {
                 request.grant(request.getResources());
+
             }
 
             @Override
             public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
                 super.onGeolocationPermissionsShowPrompt(origin, callback);
+                requestPermission();
                 callback.invoke(origin, true, false);
             }
 
@@ -171,4 +178,12 @@ public class MainActivity extends Activity{
             startActivity(i);
         }
     }
+    private void requestPermission() {
+
+        ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION, CAMERA}, 200);
+
+    }
+
+
+
 }
