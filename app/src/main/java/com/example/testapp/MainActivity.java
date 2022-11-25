@@ -1,5 +1,6 @@
 package com.example.testapp;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -7,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkInfo;
@@ -28,17 +30,32 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 
-import static android.Manifest.permission.ACCESS_FINE_LOCATION;
-import static android.Manifest.permission.CAMERA;
+//import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+//import static android.Manifest.permission.CAMERA;
 
+import com.google.android.gms.location.CurrentLocationRequest;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.SettingsClient;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
+
+import java.security.Permission;
+
+import pub.devrel.easypermissions.EasyPermissions;
 
 public class MainActivity extends Activity{
     private ValueCallback<Uri[]> fileChooserCallback;
-    //TextView tx = findViewById(R.id.textView);
+    private LocationManager locationManager;
+    FusedLocationProviderClient fusedLocationClient;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,8 +64,8 @@ public class MainActivity extends Activity{
 //            home = Uri.parse("file:///android_asset/404.html");
 //        }
 //        else {
-            home = Uri.parse("https://betochbord.netlify.app/");
-       // }
+        home = Uri.parse("https://betochbord.netlify.app/");
+        // }
         WebView view = new WebView(this);
         view.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.MATCH_PARENT));
@@ -66,28 +83,28 @@ public class MainActivity extends Activity{
         settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setSupportMultipleWindows(true);
 
-
-        view.setWebViewClient(new WebViewClient() {
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        view.setWebViewClient(new WebViewClient () {
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
 
                    //view.loadUrl("file:///android_asset/404.html");
-                AlertDialog.Builder builder
-                        = new AlertDialog.Builder(MainActivity.this);
-                builder.setTitle("No Internet");
-
-                // set the custom layout
-                final View customLayout
-                        = getLayoutInflater()
-                        .inflate(
-                                R.layout.activity_no_internet_dialog,
-                                null);
-                builder.setView(customLayout);
-
-                AlertDialog dialog
-                        = builder.create();
-                dialog.show();
+//                AlertDialog.Builder builder
+//                        = new AlertDialog.Builder(MainActivity.this);
+//                builder.setTitle("No Internet");
+//
+//                // set the custom layout
+//                final View customLayout
+//                        = getLayoutInflater()
+//                        .inflate(
+//                                R.layout.activity_no_internet_dialog,
+//                                null);
+//                builder.setView(customLayout);
+//
+//                AlertDialog dialog
+//                        = builder.create();
+//                dialog.show();
             }
 
             @Override
@@ -105,20 +122,30 @@ public class MainActivity extends Activity{
             }
 
         });
-        view.setWebChromeClient(new WebChromeClient() {
+        view.setWebChromeClient(new android.webkit.WebChromeClient() {
             @Override
             public void onPermissionRequest(final PermissionRequest request) {
                 request.grant(request.getResources());
 
             }
 
+
+
             @Override
             public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
                 super.onGeolocationPermissionsShowPrompt(origin, callback);
-                requestPermission();
-                callback.invoke(origin, true, false);
-            }
+                if(EasyPermissions.hasPermissions(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)){
+                    FusedLocationProviderClient fusedLocationProviderClient;
 
+                    callback.invoke("https://betochbord.netlify.app/", true, false);
+                }
+                else {
+                    EasyPermissions.requestPermissions(MainActivity.this,
+                            "Location permission required in order to locate your home",
+                            11, Manifest.permission.ACCESS_FINE_LOCATION);
+
+                }
+            }
             @Override
             public boolean onShowFileChooser(WebView vw, ValueCallback<Uri[]> filePathCallback,
                                              FileChooserParams fileChooserParams) {
@@ -180,10 +207,20 @@ public class MainActivity extends Activity{
     }
     private void requestPermission() {
 
-        ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION, CAMERA}, 200);
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                11);
 
     }
 
-
-
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(requestCode == 11){
+            EasyPermissions.onRequestPermissionsResult(11, permissions, grantResults, this);
+            Toast.makeText(MainActivity.this, "location permission given", Toast.LENGTH_LONG);
+        }
+    }
 }
