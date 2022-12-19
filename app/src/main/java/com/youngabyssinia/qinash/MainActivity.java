@@ -66,7 +66,7 @@ public class MainActivity extends Activity {
 //            home = Uri.parse("file:///android_asset/404.html");
 //        }
 //        else {
-        home = Uri.parse("https://qinash.surge.sh");
+        home = Uri.parse("https://abyssiniatoday.com");
         // }
         WebView view = new WebView(this);
         view.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
